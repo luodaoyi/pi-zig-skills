@@ -1,0 +1,19 @@
+{
+  "name": "pi-zig-skills",
+  "version": "0.1.0",
+  "description": "Zig 0.16 and TigerStyle skills for Pi",
+  "license": "MIT",
+  "keywords": [
+    "pi-package"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/luodaoyi/pi-zig-skills.git"
+  },
+  "pi": {
+    "skills": [
+      "./skills/zig-0.16",
+      "./skills/zig-tiger-style"
+    ]
+  }
+}
