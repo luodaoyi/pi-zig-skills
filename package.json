@@ -1,7 +1,7 @@
 {
   "name": "pi-zig-skills",
-  "version": "0.2.0",
-  "description": "Zig 0.16 and TigerStyle skills for Pi, plus a zls 0.16 helper for @narumitw/pi-lsp",
+  "version": "0.2.1",
+  "description": "Zig 0.16 and TigerStyle skills for Pi, plus zig_lsp_diagnostics via official zls 0.16",
   "license": "MIT",
   "keywords": [
     "pi-package"
@@ -10,17 +10,13 @@
     "type": "git",
     "url": "https://github.com/luodaoyi/pi-zig-skills.git"
   },
-  "dependencies": {
-    "@narumitw/pi-lsp": "0.49.5"
-  },
   "pi": {
     "skills": [
       "./skills/zig-0.16",
       "./skills/zig-tiger-style"
     ],
     "extensions": [
-      "./extensions/zls/index.ts",
-      "./node_modules/@narumitw/pi-lsp/dist/index.ts"
+      "./extensions/zls/index.ts"
     ]
   },
   "files": [

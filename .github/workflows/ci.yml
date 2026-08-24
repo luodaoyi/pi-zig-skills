@@ -27,3 +27,4 @@ jobs:
           test -f skills/zig-tiger-style/SKILL.md
           test -f skills/zig-0.16/scripts/check-zig-version.sh
           test -f extensions/zls/index.ts
+          test -f extensions/zls/zig-lsp-diagnostics.ts
