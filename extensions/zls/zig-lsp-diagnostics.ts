@@ -11,7 +11,7 @@ const SKIP = new Set([".git", ".hg", ".zig-cache", "zig-cache", "zig-out", "node
 const EXTS = new Set([".zig", ".zon"]);
 const DEFAULT_LIMIT = 50;
 const TIMEOUT_MS = 20_000;
-const PUSH_GRACE_MS = 1500;
+const PUSH_GRACE_MS = 8000;
 
 type Diagnostic = {
   range: { start: { line: number; character: number } };
@@ -78,6 +78,11 @@ function directoryUri(dir: string): string {
   return pathToFileURL(dir.endsWith(path.sep) ? dir : dir + path.sep).href;
 }
 
+/** zls 0.16 on Windows publishes file:///c:/ even if the client opened file:///C:/. */
+function uriKey(uri: string): string {
+  return uri.replace(/^file:\/\/\/([A-Za-z]):/, (_m, d: string) => "file:///" + d.toLowerCase() + ":");
+}
+
 class ZlsStdio {
   #child: ReturnType<typeof spawn> | undefined;
   #buffer = Buffer.alloc(0);
@@ -141,27 +146,34 @@ class ZlsStdio {
     if (this.#caps.diagnosticProvider) {
       const response = await this.request("textDocument/diagnostic", { textDocument: { uri } });
       const items = response.result?.items;
+      // Pull items:[] is not final: zls 0.16 may answer empty before analysis.
       if (Array.isArray(items) && items.length > 0) return items;
-      const published = this.#published.get(uri);
-      if (published && published.length) return published;
-      if (Array.isArray(items)) return items;
     }
-    const existing = this.#published.get(uri);
-    if (existing) return existing;
-    return await new Promise((resolve, reject) => {
-      const timer = setTimeout(() => {
-        const list = this.#waiters.get(uri);
-        if (list) this.#waiters.set(uri, list.filter((fn) => fn !== onPub));
-        resolve(this.#published.get(uri) ?? []);
-      }, Math.min(PUSH_GRACE_MS, TIMEOUT_MS));
-      const onPub = (d: Diagnostic[]) => {
-        clearTimeout(timer);
+    return await this.#waitPublished(uri);
+  }
+
+  #waitPublished(uri: string): Promise<Diagnostic[]> {
+    const key = uriKey(uri);
+    const existing = this.#published.get(key);
+    if (existing && existing.length > 0) return Promise.resolve(existing);
+    return new Promise((resolve) => {
+      const done = (d: Diagnostic[]) => {
+        const list = this.#waiters.get(key);
+        if (list) this.#waiters.set(key, list.filter((fn) => fn !== onPub));
         resolve(d);
       };
-      const list = this.#waiters.get(uri) ?? [];
+      const timer = setTimeout(() => {
+        done(this.#published.get(key) ?? []);
+      }, Math.min(PUSH_GRACE_MS, TIMEOUT_MS));
+      const onPub = (d: Diagnostic[]) => {
+        // An early empty publish is not final; keep waiting for a later one.
+        if (!d.length) return;
+        clearTimeout(timer);
+        done(d);
+      };
+      const list = this.#waiters.get(key) ?? [];
       list.push(onPub);
-      this.#waiters.set(uri, list);
-      void reject;
+      this.#waiters.set(key, list);
     });
   }
 
@@ -237,10 +249,13 @@ class ZlsStdio {
       const uri = message.params?.uri;
       const diagnostics = message.params?.diagnostics ?? [];
       if (uri) {
-        this.#published.set(uri, diagnostics);
-        const waiters = this.#waiters.get(uri);
+        const key = uriKey(uri);
+        this.#published.set(key, diagnostics);
+        // Empty publish is not final; leave waiters for a later non-empty push.
+        if (!diagnostics.length) return;
+        const waiters = this.#waiters.get(key);
         if (waiters) {
-          this.#waiters.delete(uri);
+          this.#waiters.delete(key);
           for (const w of waiters) w(diagnostics);
         }
       }
