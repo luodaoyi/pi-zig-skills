@@ -78,6 +78,11 @@ function directoryUri(dir: string): string {
   return pathToFileURL(dir.endsWith(path.sep) ? dir : dir + path.sep).href;
 }
 
+/** zls 0.16 on Windows publishes file:///c:/ even if the client opened file:///C:/. */
+function uriKey(uri: string): string {
+  return uri.replace(/^file:\/\/\/([A-Za-z]):/, (_m, d: string) => "file:///" + d.toLowerCase() + ":");
+}
+
 class ZlsStdio {
   #child: ReturnType<typeof spawn> | undefined;
   #buffer = Buffer.alloc(0);
@@ -148,16 +153,17 @@ class ZlsStdio {
   }
 
   #waitPublished(uri: string): Promise<Diagnostic[]> {
-    const existing = this.#published.get(uri);
+    const key = uriKey(uri);
+    const existing = this.#published.get(key);
     if (existing && existing.length > 0) return Promise.resolve(existing);
     return new Promise((resolve) => {
       const done = (d: Diagnostic[]) => {
-        const list = this.#waiters.get(uri);
-        if (list) this.#waiters.set(uri, list.filter((fn) => fn !== onPub));
+        const list = this.#waiters.get(key);
+        if (list) this.#waiters.set(key, list.filter((fn) => fn !== onPub));
         resolve(d);
       };
       const timer = setTimeout(() => {
-        done(this.#published.get(uri) ?? []);
+        done(this.#published.get(key) ?? []);
       }, Math.min(PUSH_GRACE_MS, TIMEOUT_MS));
       const onPub = (d: Diagnostic[]) => {
         // An early empty publish is not final; keep waiting for a later one.
@@ -165,9 +171,9 @@ class ZlsStdio {
         clearTimeout(timer);
         done(d);
       };
-      const list = this.#waiters.get(uri) ?? [];
+      const list = this.#waiters.get(key) ?? [];
       list.push(onPub);
-      this.#waiters.set(uri, list);
+      this.#waiters.set(key, list);
     });
   }
 
@@ -243,10 +249,13 @@ class ZlsStdio {
       const uri = message.params?.uri;
       const diagnostics = message.params?.diagnostics ?? [];
       if (uri) {
-        this.#published.set(uri, diagnostics);
-        const waiters = this.#waiters.get(uri);
+        const key = uriKey(uri);
+        this.#published.set(key, diagnostics);
+        // Empty publish is not final; leave waiters for a later non-empty push.
+        if (!diagnostics.length) return;
+        const waiters = this.#waiters.get(key);
         if (waiters) {
-          this.#waiters.delete(uri);
+          this.#waiters.delete(key);
           for (const w of waiters) w(diagnostics);
         }
       }
