@@ -25,5 +25,8 @@
     "LICENSE",
     "extensions/**"
   ],
-  "homepage": "https://github.com/luodaoyi/pi-zig-skills"
+  "homepage": "https://github.com/luodaoyi/pi-zig-skills",
+  "peerDependencies": {
+    "typebox": "*"
+  }
 }
