@@ -26,5 +26,5 @@ pi install git:github.com/luodaoyi/pi-zig-skills
 链接：
 
 - 仓库：https://github.com/luodaoyi/pi-zig-skills
-- npm 0.2.2：https://www.npmjs.com/package/pi-zig-skills/v/0.2.2
-- pi.dev 图库：https://pi.dev/packages/pi-zig-skills
+- npm 0.2.3：https://www.npmjs.com/package/pi-zig-skills/v/0.2.3
+- [Pi 包页](https://pi.dev/packages/pi-zig-skills)

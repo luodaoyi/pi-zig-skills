@@ -22,3 +22,9 @@ Git fallback:
 ```bash
 pi install git:github.com/luodaoyi/pi-zig-skills
 ```
+
+## Links
+
+- repo: https://github.com/luodaoyi/pi-zig-skills
+- npm 0.2.3: https://www.npmjs.com/package/pi-zig-skills/v/0.2.3
+- Pi package page: https://pi.dev/packages/pi-zig-skills
