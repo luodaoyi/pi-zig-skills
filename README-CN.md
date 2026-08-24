@@ -2,6 +2,8 @@
 
 # pi-zig-skills
 
+[Pi 插件页](https://pi.dev/packages/pi-zig-skills)
+
 Pi 包：两个 skill，以及一个小扩展——解析官方 zls 0.16，并为 .zig / .zon 注册 zig_lsp_diagnostics。加入后会自动出现，无需手动复制。
 
 - zig-0.16 — Zig 0.16.0 API 与移植说明（std.Io、移除 Type、cImport 弃用）。
@@ -27,4 +29,4 @@ pi install git:github.com/luodaoyi/pi-zig-skills
 
 - 仓库：https://github.com/luodaoyi/pi-zig-skills
 - npm 0.2.2：https://www.npmjs.com/package/pi-zig-skills/v/0.2.2
-- pi.dev 图库：https://pi.dev/packages/pi-zig-skills
+- [Pi 插件页](https://pi.dev/packages/pi-zig-skills)
