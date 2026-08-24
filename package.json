@@ -1,6 +1,6 @@
 {
   "name": "pi-zig-skills",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Zig 0.16 and TigerStyle skills for Pi",
   "license": "MIT",
   "keywords": [
