@@ -22,6 +22,7 @@ jobs:
         run: |
           set -euo pipefail
           node scripts/check-package.cjs
+          node scripts/check-zls-pins.cjs
           test -f skills/zig-0.16/SKILL.md
           test -f skills/zig-tiger-style/SKILL.md
           test -f skills/zig-0.16/scripts/check-zig-version.sh
