@@ -23,9 +23,10 @@ jobs:
       - name: Validate package layout
         run: |
           set -euo pipefail
-          node -e "const p=require('./package.json'); if (!p.keywords || !p.keywords.includes('pi-package')) process.exit(1);"
+          node scripts/check-package.cjs
           test -f skills/zig-0.16/SKILL.md
           test -f skills/zig-tiger-style/SKILL.md
+          test -f extensions/zls/index.ts
       - name: Make tarball
         run: mkdir -p dist-out && npm pack --pack-destination dist-out
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
