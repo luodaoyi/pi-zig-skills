@@ -17,8 +17,9 @@
     ]
   },
   "files": [
-    "skills/**",
     "README.md",
+    "skills/**",
     "LICENSE"
-  ]
+  ],
+  "homepage": "https://github.com/luodaoyi/pi-zig-skills"
 }

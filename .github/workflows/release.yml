@@ -53,10 +53,10 @@ jobs:
           tag="${GITHUB_REF_NAME}"
           tgz=$(ls dist-out/*.tgz)
           sha256sum "$tgz" | awk '{print $1}' > "$tgz.sha256"
-          if gh release view "$tag" >/dev/null 2>&1; then
-            gh release upload "$tag" "$tgz" "$tgz.sha256" --clobber
+          if gh release view -R "$GITHUB_REPOSITORY" "$tag" >/dev/null 2>&1; then
+            gh release upload -R "$GITHUB_REPOSITORY" "$tag" "$tgz" "$tgz.sha256" --clobber
           else
-            gh release create "$tag" "$tgz" "$tgz.sha256" --verify-tag --generate-notes --title "pi-zig-skills $tag"
+            gh release create -R "$GITHUB_REPOSITORY" "$tag" "$tgz" "$tgz.sha256" --verify-tag --generate-notes --title "pi-zig-skills $tag"
           fi
   registry:
     needs: github-release
