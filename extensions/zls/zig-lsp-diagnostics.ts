@@ -10,8 +10,8 @@ export const ZIG_LSP_DIAGNOSTICS_TOOL = "zig_lsp_diagnostics";
 const SKIP = new Set([".git", ".hg", ".zig-cache", "zig-cache", "zig-out", "node_modules"]);
 const EXTS = new Set([".zig", ".zon"]);
 const DEFAULT_LIMIT = 50;
-const TIMEOUT_MS = 20_000;
-const PUSH_GRACE_MS = 1500;
+const TIMEOUT_MS = 25_000;
+const PUSH_GRACE_MS = 5_000;
 
 type Diagnostic = {
   range: { start: { line: number; character: number } };
@@ -141,27 +141,37 @@ class ZlsStdio {
     if (this.#caps.diagnosticProvider) {
       const response = await this.request("textDocument/diagnostic", { textDocument: { uri } });
       const items = response.result?.items;
+      // zls often answers pull immediately with items: []. That is not final;
+      // real errors arrive later via textDocument/publishDiagnostics.
       if (Array.isArray(items) && items.length > 0) return items;
-      const published = this.#published.get(uri);
-      if (published && published.length) return published;
-      if (Array.isArray(items)) return items;
     }
+    return await this.#waitForPushDiagnostics(uri);
+  }
+
+  #waitForPushDiagnostics(uri: string): Promise<Diagnostic[]> {
     const existing = this.#published.get(uri);
-    if (existing) return existing;
-    return await new Promise((resolve, reject) => {
-      const timer = setTimeout(() => {
+    if (existing && existing.length > 0) return Promise.resolve(existing);
+    return new Promise((resolve) => {
+      const finish = (d: Diagnostic[]) => {
+        clearTimeout(timer);
         const list = this.#waiters.get(uri);
-        if (list) this.#waiters.set(uri, list.filter((fn) => fn !== onPub));
-        resolve(this.#published.get(uri) ?? []);
+        if (list) {
+          const next = list.filter((fn) => fn !== onPub);
+          if (next.length) this.#waiters.set(uri, next);
+          else this.#waiters.delete(uri);
+        }
+        resolve(d);
+      };
+      const timer = setTimeout(() => {
+        finish(this.#published.get(uri) ?? []);
       }, Math.min(PUSH_GRACE_MS, TIMEOUT_MS));
       const onPub = (d: Diagnostic[]) => {
-        clearTimeout(timer);
-        resolve(d);
+        if (d.length === 0) return;
+        finish(d);
       };
       const list = this.#waiters.get(uri) ?? [];
       list.push(onPub);
       this.#waiters.set(uri, list);
-      void reject;
     });
   }
 
@@ -239,9 +249,12 @@ class ZlsStdio {
       if (uri) {
         this.#published.set(uri, diagnostics);
         const waiters = this.#waiters.get(uri);
-        if (waiters) {
-          this.#waiters.delete(uri);
-          for (const w of waiters) w(diagnostics);
+        if (waiters && waiters.length) {
+          // Keep waiters on empty publish so a later analysis result can settle.
+          if (diagnostics.length > 0) {
+            this.#waiters.delete(uri);
+            for (const w of waiters) w(diagnostics);
+          }
         }
       }
       return;
