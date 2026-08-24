@@ -11,7 +11,7 @@ Primary:
 pi install npm:pi-zig-skills
 ```
 
-That one command installs the skills and the bundled pi-lsp tools. On load, PATH `zls` is used when it reports 0.16.x; otherwise the official zigtools/zls 0.16 prebuilt is downloaded into a user cache (never a random nightly) so pi-lsp default `zls` command can run.
+That one command installs the skills and the bundled pi-lsp tools. On load, PATH `zls` is used when it reports 0.16.x; otherwise the official zigtools/zls 0.16 prebuilt is downloaded into a user cache (never a random nightly) so pi-lsp default `zls` command can run. People who already installed 0.1.x must run `pi update` (or `pi update npm:pi-zig-skills`) or they stay on the cached 0.1.x.
 
 Git fallback:
 
