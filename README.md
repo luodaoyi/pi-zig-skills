@@ -2,6 +2,8 @@
 
 # pi-zig-skills
 
+[Pi package](https://pi.dev/packages/pi-zig-skills)
+
 Pi package with two skills and a small extension that resolves official zls 0.16 and registers zig_lsp_diagnostics for .zig / .zon. After they are added they show up automatically; no manual copy.
 
 - zig-0.16 — Zig 0.16.0 API and porting notes (std.Io, Type removal, cImport deprecation).
