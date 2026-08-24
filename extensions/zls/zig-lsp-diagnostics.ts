@@ -75,7 +75,30 @@ function collectFiles(root: string, requested: string[] | undefined, limit: numb
 }
 
 function directoryUri(dir: string): string {
-  return pathToFileURL(dir.endsWith(path.sep) ? dir : dir + path.sep).href;
+  return normalizeFileUri(pathToFileURL(dir.endsWith(path.sep) ? dir : dir + path.sep).href);
+}
+
+function fileUri(file: string): string {
+  return normalizeFileUri(pathToFileURL(file).href);
+}
+
+/** zls on Windows lowercases the drive letter; map keys must match publishDiagnostics URIs. */
+function normalizeFileUri(uri: string): string {
+  try {
+    const u = new URL(uri);
+    if (u.protocol !== "file:") return uri;
+    if (/^\/[A-Za-z]:/.test(u.pathname)) {
+      u.pathname = "/" + u.pathname[1].toLowerCase() + u.pathname.slice(2);
+    }
+    return u.href;
+  } catch {
+    return uri;
+  }
+}
+
+function uriKey(uri: string): string {
+  const normalized = normalizeFileUri(uri);
+  return process.platform === "win32" ? normalized.toLowerCase() : normalized;
 }
 
 class ZlsStdio {
@@ -149,29 +172,30 @@ class ZlsStdio {
   }
 
   #waitForPushDiagnostics(uri: string): Promise<Diagnostic[]> {
-    const existing = this.#published.get(uri);
+    const key = uriKey(uri);
+    const existing = this.#published.get(key);
     if (existing && existing.length > 0) return Promise.resolve(existing);
     return new Promise((resolve) => {
       const finish = (d: Diagnostic[]) => {
         clearTimeout(timer);
-        const list = this.#waiters.get(uri);
+        const list = this.#waiters.get(key);
         if (list) {
           const next = list.filter((fn) => fn !== onPub);
-          if (next.length) this.#waiters.set(uri, next);
-          else this.#waiters.delete(uri);
+          if (next.length) this.#waiters.set(key, next);
+          else this.#waiters.delete(key);
         }
         resolve(d);
       };
       const timer = setTimeout(() => {
-        finish(this.#published.get(uri) ?? []);
+        finish(this.#published.get(key) ?? []);
       }, Math.min(PUSH_GRACE_MS, TIMEOUT_MS));
       const onPub = (d: Diagnostic[]) => {
         if (d.length === 0) return;
         finish(d);
       };
-      const list = this.#waiters.get(uri) ?? [];
+      const list = this.#waiters.get(key) ?? [];
       list.push(onPub);
-      this.#waiters.set(uri, list);
+      this.#waiters.set(key, list);
     });
   }
 
@@ -247,12 +271,13 @@ class ZlsStdio {
       const uri = message.params?.uri;
       const diagnostics = message.params?.diagnostics ?? [];
       if (uri) {
-        this.#published.set(uri, diagnostics);
-        const waiters = this.#waiters.get(uri);
+        const key = uriKey(uri);
+        this.#published.set(key, diagnostics);
+        const waiters = this.#waiters.get(key);
         if (waiters && waiters.length) {
           // Keep waiters on empty publish so a later analysis result can settle.
           if (diagnostics.length > 0) {
-            this.#waiters.delete(uri);
+            this.#waiters.delete(key);
             for (const w of waiters) w(diagnostics);
           }
         }
@@ -343,7 +368,7 @@ export async function runZigLspDiagnostics(
     try {
       for (const file of files) {
         if (signal?.aborted) throw new Error("zig_lsp_diagnostics aborted");
-        const uri = pathToFileURL(file).href;
+        const uri = fileUri(file);
         client.didOpen(uri, readFileSync(file, "utf8"));
         opened.push({ file, uri });
       }
