@@ -14,6 +14,7 @@ import {
 } from "node:fs";
 import { homedir, tmpdir } from "node:os";
 import path from "node:path";
+import { registerZigLspDiagnostics } from "./zig-lsp-diagnostics.ts";
 
 export const ZLS_RELEASE = "0.16.0";
 
@@ -237,12 +238,17 @@ export async function resolveZls016(): Promise<string> {
   return installed;
 }
 
-export default async function (): Promise<void> {
+export default async function (pi?: { registerTool?: (tool: object) => void }): Promise<void> {
   try {
     const zls = await resolveZls016();
     prependPath(path.dirname(zls));
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     log("failed to ensure zls 0.16: " + message);
+  }
+  if (pi && typeof pi.registerTool === "function") {
+    registerZigLspDiagnostics(pi as { registerTool: (tool: object) => void }, resolveZls016);
+  } else {
+    log("extension loaded without registerTool; zig_lsp_diagnostics was not registered");
   }
 }
