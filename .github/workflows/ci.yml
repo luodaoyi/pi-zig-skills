@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@1044a6dea927916f2c38ba5aeffbc0a847b1221a
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c7fe5020a3fe5020471fe5020
+        with:
+          node-version: "24"
+      - name: Validate package layout
+        run: |
+          set -euo pipefail
+          node -e "const p=require('./package.json'); if (!p.keywords || !p.keywords.includes('pi-package')) process.exit(1); if (!p.pi || !Array.isArray(p.pi.skills) || p.pi.skills.length !== 2) process.exit(1);"
+          test -f skills/zig-0.16/SKILL.md
+          test -f skills/zig-tiger-style/SKILL.md
+          test -f skills/zig-0.16/scripts/check-zig-version.sh

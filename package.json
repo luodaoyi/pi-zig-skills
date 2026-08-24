@@ -15,5 +15,10 @@
       "./skills/zig-0.16",
       "./skills/zig-tiger-style"
     ]
-  }
+  },
+  "files": [
+    "skills/**",
+    "README.md",
+    "LICENSE"
+  ]
 }

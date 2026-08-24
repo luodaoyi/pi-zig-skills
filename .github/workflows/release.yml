@@ -1,0 +1,76 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@1044a6dea927916f2c38ba5aeffbc0a847b1221a
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c7fe5020a3fe5020471fe5020
+        with:
+          node-version: "24"
+      - name: Validate package layout
+        run: |
+          set -euo pipefail
+          node -e "const p=require('./package.json'); if (!p.keywords || !p.keywords.includes('pi-package')) process.exit(1);"
+          test -f skills/zig-0.16/SKILL.md
+          test -f skills/zig-tiger-style/SKILL.md
+      - name: Make tarball
+        run: mkdir -p dist-out && npm pack --pack-destination dist-out
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a3875d1fc6a0a
+        with:
+          name: tarball
+          path: dist-out
+          if-no-files-found: error
+          retention-days: 7
+
+  github-release:
+    needs: validate
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@974686ed5098c7f9c9289ec946b9058e496a2561
+        with:
+          name: tarball
+          path: dist-out
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          tag="${GITHUB_REF_NAME}"
+          tgz=$(ls dist-out/*.tgz)
+          sha256sum "$tgz" | awk '{print $1}' > "$tgz.sha256"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release upload "$tag" "$tgz" "$tgz.sha256" --clobber
+          else
+            gh release create "$tag" "$tgz" "$tgz.sha256" --verify-tag --generate-notes --title "pi-zig-skills $tag"
+          fi
+  registry:
+    needs: github-release
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@1044a6dea927916f2c38ba5aeffbc0a847b1221a
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c7fe5020a3fe5020471fe5020
+        with:
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
+      - name: Registry
+        run: npm publish --access public --provenance
