@@ -21,6 +21,7 @@
   },
   "files": [
     "README.md",
+    "README-CN.md",
     "skills/**",
     "LICENSE",
     "extensions/**"

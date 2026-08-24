@@ -1,3 +1,5 @@
+[中文](README-CN.md)
+
 # pi-zig-skills
 
 Pi package with two skills and a small extension that resolves official zls 0.16 and registers zig_lsp_diagnostics for .zig / .zon. After they are added they show up automatically; no manual copy.
