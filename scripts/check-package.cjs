@@ -12,5 +12,6 @@ const toolFile = path.join(__dirname, "../extensions/zls/zig-lsp-diagnostics.ts"
 if (!fs.existsSync(toolFile)) fail("missing extensions/zls/zig-lsp-diagnostics.ts");
 const toolSrc = fs.readFileSync(toolFile, "utf8");
 if (!toolSrc.includes("zig_lsp_diagnostics")) fail("tool file must register zig_lsp_diagnostics");
+if (!toolSrc.includes("publishDiagnostics")) fail("tool must wait for publishDiagnostics");
 if (p.pi.extensions.includes("./node_modules/@narumitw/pi-lsp/dist/index.ts")) fail("do not register bundled pi-lsp entry");
 console.log("package.json ok");
