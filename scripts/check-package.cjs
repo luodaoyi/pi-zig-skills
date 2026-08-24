@@ -1,0 +1,11 @@
+const p = require("../package.json");
+const fail = (msg) => { console.error(msg); process.exit(1); };
+if (p.version !== "0.2.0") fail("version must be 0.2.0");
+if (!p.keywords || !p.keywords.includes("pi-package")) fail("missing pi-package keyword");
+if (!p.pi || !Array.isArray(p.pi.skills) || p.pi.skills.length !== 2) fail("pi.skills must list both skill dirs");
+if (!p.pi.skills.includes("./skills/zig-0.16") || !p.pi.skills.includes("./skills/zig-tiger-style")) fail("unexpected pi.skills");
+if (!Array.isArray(p.pi.extensions) || p.pi.extensions.length < 2) fail("pi.extensions must list ensure-zls and pi-lsp");
+if (p.pi.extensions[0] !== "./extensions/zls/index.ts") fail("first pi.extensions entry must be ensure-zls");
+if (!p.pi.extensions.includes("./node_modules/@narumitw/pi-lsp/dist/index.ts")) fail("pi.extensions must include bundled pi-lsp entry");
+if (!p.dependencies || p.dependencies["@narumitw/pi-lsp"] !== "0.49.5") fail("must depend on @narumitw/pi-lsp 0.49.5");
+console.log("package.json ok");

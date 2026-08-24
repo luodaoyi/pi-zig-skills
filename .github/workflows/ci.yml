@@ -21,7 +21,9 @@ jobs:
       - name: Validate package layout
         run: |
           set -euo pipefail
-          node -e "const p=require('./package.json'); if (!p.keywords || !p.keywords.includes('pi-package')) process.exit(1); if (!p.pi || !Array.isArray(p.pi.skills) || p.pi.skills.length !== 2) process.exit(1);"
+          node scripts/check-package.cjs
+          node scripts/check-zls-pins.cjs
           test -f skills/zig-0.16/SKILL.md
           test -f skills/zig-tiger-style/SKILL.md
           test -f skills/zig-0.16/scripts/check-zig-version.sh
+          test -f extensions/zls/index.ts
