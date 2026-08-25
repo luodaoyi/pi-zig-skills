@@ -2,7 +2,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const p = require("../package.json");
 const fail = (msg) => { console.error(msg); process.exit(1); };
-if (p.version !== "0.2.3") fail("version must be 0.2.3");
+if (p.version !== "0.2.4") fail("version must be 0.2.4");
 if (!p.keywords || !p.keywords.includes("pi-package")) fail("missing pi-package keyword");
 if (!p.pi || !Array.isArray(p.pi.skills) || p.pi.skills.length !== 2) fail("pi.skills must list both skill dirs");
 if (!p.pi.skills.includes("./skills/zig-0.16") || !p.pi.skills.includes("./skills/zig-tiger-style")) fail("unexpected pi.skills");
