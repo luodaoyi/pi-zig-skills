@@ -1,10 +1,14 @@
 {
   "name": "pi-zig-skills",
-  "version": "0.2.3",
-  "description": "Zig 0.16 and TigerStyle skills for Pi, plus zig_lsp_diagnostics via official zls 0.16",
+  "version": "0.2.4",
+  "description": "Zig 0.16 skills + official zls diagnostics for Pi",
   "license": "MIT",
   "keywords": [
-    "pi-package"
+    "pi-package",
+    "zig",
+    "zls",
+    "ziglang",
+    "lsp"
   ],
   "repository": {
     "type": "git",

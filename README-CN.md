@@ -2,7 +2,7 @@
 
 # pi-zig-skills
 
-Pi 包：两个 skill，以及一个小扩展——解析官方 zls 0.16，并为 .zig / .zon 注册 zig_lsp_diagnostics。加入后会自动出现，无需手动复制。
+Zig 0.16 技能 + 官方 zls 诊断，给 Pi 用。
 
 - zig-0.16 — Zig 0.16.0 API 与移植说明（std.Io、移除 Type、cImport 弃用）。
 - zig-tiger-style — 来自 TigerBeetle 的 TigerStyle Zig 指南（安全、断言、命名、布局）。
@@ -26,5 +26,5 @@ pi install git:github.com/luodaoyi/pi-zig-skills
 链接：
 
 - 仓库：https://github.com/luodaoyi/pi-zig-skills
-- npm 0.2.3：https://www.npmjs.com/package/pi-zig-skills/v/0.2.3
+- npm 0.2.4：https://www.npmjs.com/package/pi-zig-skills/v/0.2.4
 - [Pi 包页](https://pi.dev/packages/pi-zig-skills)

@@ -2,7 +2,7 @@
 
 # pi-zig-skills
 
-Pi package with two skills and a small extension that resolves official zls 0.16 and registers zig_lsp_diagnostics for .zig / .zon. After they are added they show up automatically; no manual copy.
+Zig 0.16 skills + official zls diagnostics for Pi
 
 - zig-0.16 — Zig 0.16.0 API and porting notes (std.Io, Type removal, cImport deprecation).
 - zig-tiger-style — TigerStyle Zig guidelines from TigerBeetle (safety, assertions, naming, layout).
@@ -26,5 +26,5 @@ pi install git:github.com/luodaoyi/pi-zig-skills
 ## Links
 
 - repo: https://github.com/luodaoyi/pi-zig-skills
-- npm 0.2.3: https://www.npmjs.com/package/pi-zig-skills/v/0.2.3
+- npm 0.2.4: https://www.npmjs.com/package/pi-zig-skills/v/0.2.4
 - Pi package page: https://pi.dev/packages/pi-zig-skills
